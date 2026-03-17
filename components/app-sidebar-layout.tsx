@@ -91,7 +91,7 @@ export function AppSidebarLayout({ children, breadcrumbs = [] }: Omit<AppSidebar
                     </SidebarMenu>
                 </SidebarHeader>
 
-                <SidebarContent>
+                <SidebarContent >
                     <SidebarGroup>
                         <SidebarGroupLabel className="font-mono text-[10px] tracking-widest">
                         </SidebarGroupLabel>
@@ -161,7 +161,7 @@ export function AppSidebarLayout({ children, breadcrumbs = [] }: Omit<AppSidebar
                 <SidebarRail />
             </Sidebar>
 
-            <SidebarInset>
+            <SidebarInset className="m-4! ml-0!">
                 {/* Top bar */}
                 <header className="flex h-17.5 shrink-0 items-center gap-3 border-b border-border/60 px-4">
                     <SidebarTrigger className="-ml-1" />
@@ -202,7 +202,7 @@ export function AppSidebarLayout({ children, breadcrumbs = [] }: Omit<AppSidebar
                 </header>
 
                 {/* Page content */}
-                <div className="flex flex-col gap-5 p-5 overflow-auto">
+                <div className="flex flex-col gap-5 p-5 overflow-auto ">
                     {children}
                 </div>
             </SidebarInset>
