@@ -4,14 +4,9 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-    Activity,
     Bell,
     ChevronDown,
-    Database,
-    FileText,
     Gauge,
-    Home,
-    Settings,
     Circle,
 } from "lucide-react";
 
@@ -43,21 +38,9 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { usePathname } from "next/navigation";
+import { navMain, navSettings } from "@/config/nav";
 
 
-// ─── Nav Items (moved here for global use) ─────────────────────────────────────
-
-const navMain = [
-    { title: "Dashboard", icon: Home, href: "/", isActive: true },
-    { title: "Data Input", icon: FileText, href: "/dashboard", isActive: false },
-    { title: "History", icon: Database, href: "/history", isActive: false },
-    { title: "Reports", icon: Activity, href: "/reports", isActive: false },
-];
-
-const navSettings = [
-    { title: "Alerts", icon: Bell, href: "/alerts", isActive: false },
-    { title: "Settings", icon: Settings, href: "/settings", isActive: false },
-];
 
 // ─── Live Indicator Sub-component ─────────────────────────────────────────────
 

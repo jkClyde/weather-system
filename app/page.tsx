@@ -246,7 +246,7 @@ export default function Page() {
       </div>
 
       {/* Chart */}
-      <Card className="border-border/60">
+      {/* <Card className="border-border/60">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
@@ -286,7 +286,7 @@ export default function Page() {
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Stats + Table row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
