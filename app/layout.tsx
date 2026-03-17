@@ -1,13 +1,14 @@
 // app/layout.tsx
-import { Inter, Fira_Code } from "next/font/google";
+import { Oxygen, Fira_Code } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppSidebarLayout } from "@/components/app-sidebar-layout";
 
-const inter = Inter({
+// Import Oxygen
+const oxygen = Oxygen({
   subsets: ["latin"],
-  variable: "--font-inter",
-  weight: ["400", "500", "600", "700"],
+  variable: "--font-oxygen",
+  weight: ["300", "400", "700"], 
 });
 
 const firaCode = Fira_Code({
@@ -18,8 +19,8 @@ const firaCode = Fira_Code({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${firaCode.variable}`}>
-      <body className="antialiased">
+    <html lang="en" className={`${oxygen.variable} ${firaCode.variable}`}>
+      <body className="antialiased font-sans">
         <TooltipProvider>
           <AppSidebarLayout>
             {children}

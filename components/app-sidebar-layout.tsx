@@ -107,7 +107,6 @@ export function AppSidebarLayout({ children, activeNav = "Overview", breadcrumbs
                 <SidebarContent>
                     <SidebarGroup>
                         <SidebarGroupLabel className="font-mono text-[10px] tracking-widest">
-                            Navigation
                         </SidebarGroupLabel>
                         <SidebarGroupContent>
                             <SidebarMenu>
@@ -117,10 +116,11 @@ export function AppSidebarLayout({ children, activeNav = "Overview", breadcrumbs
                                             asChild
                                             isActive={activeNav === item.title}
                                             tooltip={item.title}
+                                            className="h-[40px]!"
                                         >
                                             <Link href={item.href}>
                                                 <item.icon />
-                                                <span>{item.title}</span>
+                                                <span className="font-oxygen text-[14px]! tracking-wide">{item.title}</span>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
@@ -143,7 +143,7 @@ export function AppSidebarLayout({ children, activeNav = "Overview", breadcrumbs
                                         >
                                             <Link href={item.href}>
                                                 <item.icon />
-                                                <span>{item.title}</span>
+                                                <span >{item.title}</span>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
@@ -175,9 +175,9 @@ export function AppSidebarLayout({ children, activeNav = "Overview", breadcrumbs
 
             <SidebarInset>
                 {/* Top bar */}
-                <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border/60 px-4">
+                <header className="flex h-17.5 shrink-0 items-center gap-3 border-b border-border/60 px-4">
                     <SidebarTrigger className="-ml-1" />
-                    <Separator orientation="vertical" className="h-4" />
+                    <Separator orientation="vertical" className="h-full" />
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>

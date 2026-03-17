@@ -194,6 +194,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
+
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
@@ -206,6 +207,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
+
+                
               </CollapsibleContent>
             </SidebarGroup>
           </Collapsible>

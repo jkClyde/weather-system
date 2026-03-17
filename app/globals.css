@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -7,8 +8,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Oxygen', sans-serif;
+  --font-mono: 'Oxygen', sans-serif;
+  --font-oxygen: 'Oxygen', sans-serif;
 }
 
 body {
@@ -140,4 +142,8 @@ code, pre, input, textarea {
   html {
     @apply font-sans;
   }
+}
+
+.sidebar-menu-item {
+  border: 10px solid red !important;
 }
