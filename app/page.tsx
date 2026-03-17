@@ -70,7 +70,7 @@ export default function Page() {
       </div>
 
       {/* Area Chart */}
-      <Card className="border-border/60">
+      {/* <Card className="border-border/60">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
@@ -113,18 +113,20 @@ export default function Page() {
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Stats + Table row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Summary stats */}
         <div className="flex flex-col gap-4">
           {stats.map((s) => (
-            <Card key={s.label} className="border-border/60 py-0">
+            <Card key={s.label} className={`border-border/60 py-0 ${s.bg}`}>
               <CardContent className="flex items-center justify-between p-4">
-                <div>
-                  <p className="text-[11px] font-mono text-muted-foreground tracking-widest uppercase">{s.label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{s.sub}</p>
+                <div className="flex flex-col gap-1">
+                  <p className={`text-[11px] font-mono text-muted-foreground tracking-widest uppercase flex items-center gap-1`}>
+                    {s.icon} {s.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{s.sub}</p>
                 </div>
                 <span className={`text-2xl font-bold font-mono ${s.color}`}>{s.value}</span>
               </CardContent>

@@ -34,8 +34,36 @@ export const recentReadings: Reading[] = [
 
 
 export const stats = [
-  { label: "Avg Temp (24h)", value: "27.8°C", sub: "Within normal range", color: "text-orange-500" },
-  { label: "Avg Humidity (24h)", value: "59.3%", sub: "Slightly elevated", color: "text-sky-500" },
-  { label: "Peak Vibration", value: "0.21g", sub: "Today at 14:58", color: "text-violet-500" },
-  { label: "Total Readings", value: "1,284", sub: "Since deployment", color: "text-emerald-500" },
+  { 
+    label: "Avg Temp (24h)", 
+    value: "27.8°C", 
+    sub: "Within normal range", 
+    color: "text-orange-500",
+    icon: "🌡️", 
+    bg: "bg-orange-50"
+  },
+  { 
+    label: "Avg Humidity (24h)", 
+    value: "59.3%", 
+    sub: "Slightly elevated", 
+    color: "text-sky-500",
+    icon: "💧",
+    bg: "bg-sky-50"
+  },
+  { 
+    label: "Peak Vibration", 
+    value: "0.21g", 
+    sub: "Today at 14:58", 
+    color: "text-violet-500",
+    icon: "⚡",
+    bg: "bg-violet-50"
+  },
+  { 
+    label: "Total Readings", 
+    value: "1,284", 
+    sub: "Since deployment", 
+    color: "text-emerald-500",
+    icon: "📊",
+    bg: "bg-emerald-50"
+  },
 ];
