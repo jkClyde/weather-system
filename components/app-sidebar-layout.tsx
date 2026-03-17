@@ -42,6 +42,8 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import { usePathname } from "next/navigation";
+
 
 // ─── Nav Items (moved here for global use) ─────────────────────────────────────
 
@@ -79,14 +81,16 @@ interface AppSidebarLayoutProps {
     breadcrumbs?: { label: string; href?: string }[];
 }
 
-export function AppSidebarLayout({ children, activeNav = "Overview", breadcrumbs = [] }: AppSidebarLayoutProps) {
+export function AppSidebarLayout({ children, breadcrumbs = [] }: Omit<AppSidebarLayoutProps, 'activeNav'>) {
+    const pathname = usePathname();
+    const activeNav = [...navMain, ...navSettings].find(item => item.href === pathname)?.title ?? "";
     const now = new Date().toLocaleString("en-PH", {
         weekday: "short", month: "short", day: "numeric",
         hour: "2-digit", minute: "2-digit",
     });
 
     return (
-        <SidebarProvider>
+        <SidebarProvider style={{ "--sidebar-width": "20rem" } as React.CSSProperties}>
             <Sidebar collapsible="icon" variant="inset">
                 <SidebarHeader>
                     <SidebarMenu>
@@ -109,17 +113,17 @@ export function AppSidebarLayout({ children, activeNav = "Overview", breadcrumbs
                         <SidebarGroupLabel className="font-mono text-[10px] tracking-widest">
                         </SidebarGroupLabel>
                         <SidebarGroupContent>
-                            <SidebarMenu>
+                            <SidebarMenu className="gap-2.5">
                                 {navMain.map((item) => (
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton
                                             asChild
                                             isActive={activeNav === item.title}
                                             tooltip={item.title}
-                                            className="h-[40px]!"
+                                            className="h-10!"
                                         >
                                             <Link href={item.href}>
-                                                <item.icon />
+                                                <item.icon className="w-6! h-6!" />
                                                 <span className="font-oxygen text-[14px]! tracking-wide">{item.title}</span>
                                             </Link>
                                         </SidebarMenuButton>
@@ -139,6 +143,7 @@ export function AppSidebarLayout({ children, activeNav = "Overview", breadcrumbs
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton
                                             asChild
+                                            isActive={activeNav === item.title}
                                             tooltip={item.title}
                                         >
                                             <Link href={item.href}>

@@ -11,12 +11,19 @@
   --font-sans: 'Oxygen', sans-serif;
   --font-mono: 'Oxygen', sans-serif;
   --font-oxygen: 'Oxygen', sans-serif;
+  --sidebar-width: 22rem !important;
 }
+
+
 
 body {
   font-family: var(--font-sans);
 }
-code, pre, input, textarea {
+
+code,
+pre,
+input,
+textarea {
   font-family: var(--font-mono);
 }
 
@@ -136,14 +143,18 @@ code, pre, input, textarea {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
 }
 
-.sidebar-menu-item {
-  border: 10px solid red !important;
+[data-slot="menu-button"][data-active="true"] {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
 }
