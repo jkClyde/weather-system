@@ -26,8 +26,8 @@ export default function Page() {
     <div className="flex flex-col gap-5 p-5 overflow-auto">
       {/* Page title */}
       <div>
-        <h1 className="text-xl font-bold tracking-tight">Overview</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
+        <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
+        <p className="text-base text-muted-foreground mt-1">
           Real-time sensor monitoring — ESP32 node active
         </p>
       </div>
@@ -46,7 +46,6 @@ export default function Page() {
           iconBgClass="bg-orange-500/10 text-orange-500"
         />
         <SensorCard
-        
           label="Humidity"
           value="62.1"
           unit="%"
@@ -75,12 +74,12 @@ export default function Page() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-sm font-semibold">Sensor readings over time</CardTitle>
-              <CardDescription className="text-xs mt-0.5">Today, 08:00 – 15:00</CardDescription>
+              <CardTitle className="text-base font-semibold">Sensor readings over time</CardTitle>
+              <CardDescription className="text-sm mt-1">Today, 08:00 – 15:00</CardDescription>
             </div>
             <Badge
               variant="outline"
-              className="font-mono text-[10px] tracking-widest text-emerald-600 border-emerald-500/30 bg-emerald-500/5"
+              className="font-mono text-[11px] tracking-widest text-emerald-600 border-emerald-500/30 bg-emerald-500/5"
             >
               REALTIME
             </Badge>
@@ -124,12 +123,12 @@ export default function Page() {
             <Card key={s.label} className={`border-border/60 py-0 ${s.bg}`}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex flex-col gap-1">
-                  <p className={`text-[11px] font-mono text-muted-foreground tracking-widest uppercase flex items-center gap-1`}>
+                  <p className={`text-xs font-mono text-muted-foreground tracking-widest uppercase flex items-center gap-1.5`}>
                     {s.icon} {s.label}
                   </p>
-                  <p className="text-xs text-muted-foreground">{s.sub}</p>
+                  <p className="text-sm text-muted-foreground">{s.sub}</p>
                 </div>
-                <span className={`text-2xl font-bold font-mono ${s.color}`}>{s.value}</span>
+                <span className={`text-3xl font-bold font-mono ${s.color}`}>{s.value}</span>
               </CardContent>
             </Card>
           ))}
@@ -140,10 +139,10 @@ export default function Page() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-sm font-semibold">Recent readings</CardTitle>
-                <CardDescription className="text-xs mt-0.5">Latest 7 sensor entries</CardDescription>
+                <CardTitle className="text-base font-semibold">Recent readings</CardTitle>
+                <CardDescription className="text-sm mt-1">Latest 7 sensor entries</CardDescription>
               </div>
-              <Badge variant="outline" className="font-mono text-[10px] tracking-widest">
+              <Badge variant="outline" className="font-mono text-[11px] tracking-widest">
                 AUTO-REFRESH
               </Badge>
             </div>
@@ -152,20 +151,20 @@ export default function Page() {
             <Table>
               <TableHeader>
                 <TableRow className="border-border/60">
-                  <TableHead className="font-mono text-[10px] tracking-widest pl-6">Time</TableHead>
-                  <TableHead className="font-mono text-[10px] tracking-widest">Temp</TableHead>
-                  <TableHead className="font-mono text-[10px] tracking-widest">Humidity</TableHead>
-                  <TableHead className="font-mono text-[10px] tracking-widest">Vibration</TableHead>
-                  <TableHead className="font-mono text-[10px] tracking-widest">Status</TableHead>
+                  <TableHead className="font-mono text-xs tracking-widest pl-6">Time</TableHead>
+                  <TableHead className="font-mono text-xs tracking-widest">Temp</TableHead>
+                  <TableHead className="font-mono text-xs tracking-widest">Humidity</TableHead>
+                  <TableHead className="font-mono text-xs tracking-widest">Vibration</TableHead>
+                  <TableHead className="font-mono text-xs tracking-widest">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {recentReadings.map((r) => (
                   <TableRow key={r.id} className="border-border/40 hover:bg-muted/30">
-                    <TableCell className="font-mono text-xs text-muted-foreground pl-6">{r.timestamp}</TableCell>
-                    <TableCell className="font-mono text-xs text-orange-500">{r.temperature}°C</TableCell>
-                    <TableCell className="font-mono text-xs text-sky-500">{r.humidity}%</TableCell>
-                    <TableCell className="font-mono text-xs text-violet-500">{r.vibration}g</TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground pl-6">{r.timestamp}</TableCell>
+                    <TableCell className="font-mono text-sm text-orange-500">{r.temperature}°C</TableCell>
+                    <TableCell className="font-mono text-sm text-sky-500">{r.humidity}%</TableCell>
+                    <TableCell className="font-mono text-sm text-violet-500">{r.vibration}g</TableCell>
                     <TableCell><StatusBadge status={r.status} /></TableCell>
                   </TableRow>
                 ))}
