@@ -1,26 +1,102 @@
 "use client";
 
 import * as React from "react";
-import { Thermometer, Wind, Zap } from "lucide-react";
-import { SensorCard, StatusBadge } from "@/components/SensorCard";
-import CustomTooltip from "@/components/CustomToolTip";
-import { recentReadings, stats, chartData } from "@/config/data";
+import { Thermometer, Wind, Zap, Wifi } from "lucide-react";
+import { SensorCard } from "@/components/SensorCard";
+import { recentReadings, stats } from "@/config/data";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+
+/* ─── tiny helpers ─────────────────────────────────────────── */
+
+function PulsingDot({ color }: { color: string }) {
+  return (
+    <span className="relative flex h-2 w-2">
+      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 ${color}`} />
+      <span className={`relative inline-flex rounded-full h-2 w-2 ${color}`} />
+    </span>
+  );
+}
+
+function TempCell({ value }: { value: number }) {
+  const hot = value >= 30;
+  const warm = value >= 27;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 font-mono text-xs font-semibold px-2 py-0.5 rounded-full
+        ${hot ? "bg-red-500/10 text-red-500" : warm ? "bg-orange-500/10 text-orange-500" : "bg-sky-500/10 text-sky-500"}`}
+    >
+      {value}°C
+    </span>
+  );
+}
+
+function HumidityBar({ value }: { value: number }) {
+  const pct = Math.min(100, Math.max(0, value));
+  const color = pct > 80 ? "bg-blue-500" : pct > 60 ? "bg-sky-400" : "bg-teal-400";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${color}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="font-mono text-xs font-medium text-sky-500">{value}%</span>
+    </div>
+  );
+}
+
+function VibCell({ value }: { value: number }) {
+  const bars = 5;
+  const active = Math.round((value / 0.1) * bars);
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex items-end gap-[2px] h-4">
+        {Array.from({ length: bars }).map((_, i) => (
+          <div
+            key={i}
+            className={`w-1 rounded-sm transition-all duration-300 ${i < active ? "bg-violet-500" : "bg-muted"}`}
+            style={{ height: `${40 + i * 15}%` }}
+          />
+        ))}
+      </div>
+      <span className="font-mono text-xs font-medium text-violet-500">{value}g</span>
+    </div>
+  );
+}
+
+const statusConfig: Record<string, { dot: string; badge: string; label: string }> = {
+  normal: { dot: "bg-emerald-500", badge: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", label: "Normal" },
+  warning: { dot: "bg-amber-400", badge: "bg-amber-400/10  text-amber-600  border-amber-400/20", label: "Warning" },
+  critical: { dot: "bg-red-500", badge: "bg-red-500/10    text-red-600    border-red-500/20", label: "Critical" },
+};
+
+function StatusCell({ status }: { status: string }) {
+  const cfg = statusConfig[status] ?? statusConfig.normal;
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+      <PulsingDot color={cfg.dot} />
+      {cfg.label}
+    </span>
+  );
+}
+
+/* ─── main page ────────────────────────────────────────────── */
 
 export default function Page() {
+  const [highlighted, setHighlighted] = React.useState<number | null>(null);
+  const [tick, setTick] = React.useState(new Date());
 
+  // flash latest row every 4s to simulate live data arriving
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setHighlighted(recentReadings[0].id);
+      setTick(new Date());
+      setTimeout(() => setHighlighted(null), 800);
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div className="flex flex-col gap-5 p-5 overflow-auto">
@@ -69,52 +145,6 @@ export default function Page() {
         />
       </div>
 
-      {/* Area Chart */}
-      {/* <Card className="border-border/60">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-sm font-semibold">Sensor readings over time</CardTitle>
-              <CardDescription className="text-xs mt-0.5">Today, 08:00 – 15:00</CardDescription>
-            </div>
-            <Badge
-              variant="outline"
-              className="font-mono text-[10px] tracking-widest text-emerald-600 border-emerald-500/30 bg-emerald-500/5"
-            >
-              REALTIME
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorHum" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorVib" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#a78bfa" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              <XAxis dataKey="time" tick={{ fontSize: 11, fontFamily: "monospace" }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 11, fontFamily: "monospace" }} tickLine={false} axisLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: 11, fontFamily: "monospace" }} />
-              <Area type="monotone" dataKey="temperature" name="Temp (°C)" stroke="#f97316" strokeWidth={1.5} fill="url(#colorTemp)" dot={false} />
-              <Area type="monotone" dataKey="humidity" name="Humidity (%)" stroke="#38bdf8" strokeWidth={1.5} fill="url(#colorHum)" dot={false} />
-              <Area type="monotone" dataKey="vibration" name="Vibration (g)" stroke="#a78bfa" strokeWidth={1.5} fill="url(#colorVib)" dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card> */}
-
       {/* Stats + Table row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Summary stats */}
@@ -123,10 +153,10 @@ export default function Page() {
             <Card key={s.label} className={`border-border/60 py-0 ${s.bg}`}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex flex-col gap-1">
-                  <p className={`text-[11px] font-mono text-muted-foreground tracking-widest uppercase flex items-center gap-1`}>
+                  <p className="text-xs font-mono text-muted-foreground tracking-widest uppercase flex items-center gap-1">
                     {s.icon} {s.label}
                   </p>
-                  <p className="text-xs text-muted-foreground">{s.sub}</p>
+                  <p className="text-sm text-muted-foreground">{s.sub}</p>
                 </div>
                 <span className={`text-2xl font-bold font-mono ${s.color}`}>{s.value}</span>
               </CardContent>
@@ -134,42 +164,68 @@ export default function Page() {
           ))}
         </div>
 
-        {/* Recent readings table */}
-        <Card className="lg:col-span-2 border-border/60">
+        {/* Recent readings table — lively */}
+        <Card className="lg:col-span-2 border-border/60 overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-sm font-semibold">Recent readings</CardTitle>
-                <CardDescription className="text-xs mt-0.5">Latest 7 sensor entries</CardDescription>
+                <CardDescription className="text-sm mt-0.5">Latest 7 sensor entries</CardDescription>
               </div>
-              <Badge variant="outline" className="font-mono text-[10px] tracking-widest">
-                AUTO-REFRESH
+              <Badge
+                variant="outline"
+                className="font-mono text-xs tracking-widest text-emerald-600 border-emerald-500/30 bg-emerald-500/5 flex items-center gap-1.5"
+              >
+                <Wifi className="w-3 h-3" />
+                LIVE
               </Badge>
             </div>
           </CardHeader>
+
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/60">
-                  <TableHead className="font-mono text-[10px] tracking-widest pl-6">Time</TableHead>
-                  <TableHead className="font-mono text-[10px] tracking-widest">Temp</TableHead>
-                  <TableHead className="font-mono text-[10px] tracking-widest">Humidity</TableHead>
-                  <TableHead className="font-mono text-[10px] tracking-widest">Vibration</TableHead>
-                  <TableHead className="font-mono text-[10px] tracking-widest">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentReadings.map((r) => (
-                  <TableRow key={r.id} className="border-border/40 hover:bg-muted/30">
-                    <TableCell className="font-mono text-xs text-muted-foreground pl-6">{r.timestamp}</TableCell>
-                    <TableCell className="font-mono text-xs text-orange-500">{r.temperature}°C</TableCell>
-                    <TableCell className="font-mono text-xs text-sky-500">{r.humidity}%</TableCell>
-                    <TableCell className="font-mono text-xs text-violet-500">{r.vibration}g</TableCell>
-                    <TableCell><StatusBadge status={r.status} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            {/* column header */}
+            <div className="grid grid-cols-[1fr_1fr_1.4fr_1.1fr_1fr] gap-x-6 px-6 py-2 border-b border-border/40 bg-muted/30">
+              {["Time", "Temp", "Humidity", "Vibration", "Status"].map((h) => (
+                <span key={h} className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+                  {h}
+                </span>
+              ))}
+            </div>
+
+            {/* data rows */}
+            <div className="divide-y divide-border/30">
+              {recentReadings.map((r, i) => {
+                const isNew = highlighted === r.id;
+                return (
+                  <div
+                    key={r.id}
+                    className={`grid grid-cols-[1fr_1fr_1.4fr_1.1fr_1fr] gap-x-6 items-center px-6 py-3
+                      transition-colors duration-500
+                      ${isNew ? "bg-emerald-500/5" : i % 2 === 0 ? "bg-transparent" : "bg-muted/10"}
+                      hover:bg-muted/25`}
+                  >
+                    <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                      {r.timestamp}
+                    </span>
+                    <TempCell value={r.temperature} />
+                    <HumidityBar value={r.humidity} />
+                    <VibCell value={r.vibration} />
+                    <StatusCell status={r.status} />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* live footer ticker */}
+            <div className="flex items-center gap-2 px-6 py-2.5 border-t border-border/30 bg-muted/20">
+              <PulsingDot color="bg-emerald-500" />
+              <span className="font-mono text-xs text-muted-foreground">
+                Node ESP32-A1 · polling every 5s
+              </span>
+              <span className="ml-auto font-mono text-xs text-muted-foreground tabular-nums">
+                {tick.toLocaleTimeString()}
+              </span>
+            </div>
           </CardContent>
         </Card>
       </div>
