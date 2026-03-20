@@ -23,7 +23,7 @@ export default function Page() {
 
 
   return (
-    <div className="flex flex-col gap-5 p-5 overflow-auto">
+    <div className="flex flex-col gap-5 p-0 md:p-5 overflow-auto">
       {/* Page title */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
