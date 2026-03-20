@@ -202,7 +202,7 @@ export function AppSidebarLayout({ children, breadcrumbs = [] }: Omit<AppSidebar
                 </header>
 
                 {/* Page content */}
-                <div className="flex flex-col gap-5 p-5 overflow-auto ">
+                <div className="flex flex-col gap-5  md:p-5 overflow-auto ">
                     {children}
                 </div>
             </SidebarInset>

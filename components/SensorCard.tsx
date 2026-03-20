@@ -40,40 +40,40 @@ export function SensorCard({
       {/* Top accent bar */}
       <div className={`absolute top-0 left-0 right-0 h-1 ${accentClass}`} />
       
-      <CardHeader className="pb-3 pt-5">
-        <div className="flex items-start justify-between">
-          <CardDescription className="text-xs font-medium tracking-wide uppercase text-slate-600">
+      <CardHeader className="pb-2 md:pb-3 pt-4 md:pt-5">
+        <div className="flex items-start justify-between gap-2">
+          <CardDescription className="text-[10px] md:text-xs font-medium tracking-wide uppercase text-slate-600">
             {label}
           </CardDescription>
           <StatusBadge status={status} />
         </div>
       </CardHeader>
       
-      <CardContent className="pb-5">
-        <div className="flex items-end justify-between">
+      <CardContent className="pb-4 md:pb-5">
+        <div className="flex items-end justify-between gap-3">
           {/* Value section */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-bold tracking-tight text-slate-900 group-hover:scale-105 transition-transform duration-300">
+          <div className="flex flex-col gap-2 md:gap-3 min-w-0 flex-1">
+            <div className="flex items-baseline gap-1 md:gap-1.5">
+              <span className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 group-hover:scale-105 transition-transform duration-300">
                 {value}
               </span>
-              <span className="text-lg font-medium text-slate-500">
+              <span className="text-base md:text-lg font-medium text-slate-500">
                 {unit}
               </span>
             </div>
             
             {/* Trend indicator */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 md:gap-1.5">
               <TrendIcon trend={trend} />
-              <span className="text-xs text-slate-600 font-medium">
+              <span className="text-[10px] md:text-xs text-slate-600 font-medium truncate">
                 {trendLabel}
               </span>
             </div>
           </div>
           
           {/* Icon section */}
-          <div className={`p-3 rounded-xl ${iconBgClass} group-hover:scale-110 transition-transform duration-300`}>
-            <Icon className="w-6 h-6" strokeWidth={2} />
+          <div className={`p-2.5 md:p-3 rounded-xl ${iconBgClass} group-hover:scale-110 transition-transform duration-300 shrink-0`}>
+            <Icon className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2} />
           </div>
         </div>
       </CardContent>
