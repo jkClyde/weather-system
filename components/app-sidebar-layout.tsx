@@ -161,7 +161,7 @@ export function AppSidebarLayout({ children, breadcrumbs = [] }: Omit<AppSidebar
                 <SidebarRail />
             </Sidebar>
 
-            <SidebarInset className="m-4! ml-0!">
+            <SidebarInset className="md:m-4! ml-0!">
                 {/* Top bar */}
                 <header className="flex h-17.5 shrink-0 items-center gap-3 border-b border-border/60 px-4">
                     <SidebarTrigger className="-ml-1" />
