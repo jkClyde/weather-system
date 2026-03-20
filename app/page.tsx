@@ -21,7 +21,7 @@ import {
 
 export default function Page() {
   return (
-    <div className="flex flex-col gap-4 md:gap-6 p-4 md:p-6 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div className="flex flex-col gap-4 md:gap-6 p-4 md:p-6 ">
       {/* Page title */}
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Sensor Dashboard</h1>
@@ -109,49 +109,49 @@ export default function Page() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.6} />
-                  <XAxis 
-                    dataKey="time" 
-                    tick={{ fontSize: 9, fill: "#64748b" }} 
-                    tickLine={false} 
+                  <XAxis
+                    dataKey="time"
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    tickLine={false}
                     axisLine={false}
                     interval={2}
                   />
-                  <YAxis 
-                    tick={{ fontSize: 9, fill: "#64748b" }} 
-                    tickLine={false} 
-                    axisLine={false} 
+                  <YAxis
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    tickLine={false}
+                    axisLine={false}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend 
-                    wrapperStyle={{ fontSize: 9 }} 
+                  <Legend
+                    wrapperStyle={{ fontSize: 9 }}
                     iconType="circle"
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="temperature" 
-                    name="Temp (°C)" 
-                    stroke="#f97316" 
-                    strokeWidth={1.5} 
-                    fill="url(#colorTemp)" 
-                    dot={false} 
+                  <Area
+                    type="monotone"
+                    dataKey="temperature"
+                    name="Temp (°C)"
+                    stroke="#f97316"
+                    strokeWidth={1.5}
+                    fill="url(#colorTemp)"
+                    dot={false}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="humidity" 
-                    name="Humidity (%)" 
-                    stroke="#38bdf8" 
-                    strokeWidth={1.5} 
-                    fill="url(#colorHum)" 
-                    dot={false} 
+                  <Area
+                    type="monotone"
+                    dataKey="humidity"
+                    name="Humidity (%)"
+                    stroke="#38bdf8"
+                    strokeWidth={1.5}
+                    fill="url(#colorHum)"
+                    dot={false}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="vibration" 
-                    name="Vibration (g)" 
-                    stroke="#a78bfa" 
-                    strokeWidth={1.5} 
-                    fill="url(#colorVib)" 
-                    dot={false} 
+                  <Area
+                    type="monotone"
+                    dataKey="vibration"
+                    name="Vibration (g)"
+                    stroke="#a78bfa"
+                    strokeWidth={1.5}
+                    fill="url(#colorVib)"
+                    dot={false}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -172,48 +172,48 @@ export default function Page() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.6} />
-                  <XAxis 
-                    dataKey="time" 
-                    tick={{ fontSize: 11, fill: "#64748b" }} 
-                    tickLine={false} 
-                    axisLine={false} 
+                  <XAxis
+                    dataKey="time"
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    tickLine={false}
+                    axisLine={false}
                   />
-                  <YAxis 
-                    tick={{ fontSize: 11, fill: "#64748b" }} 
-                    tickLine={false} 
-                    axisLine={false} 
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    tickLine={false}
+                    axisLine={false}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend 
-                    wrapperStyle={{ fontSize: 11 }} 
+                  <Legend
+                    wrapperStyle={{ fontSize: 11 }}
                     iconType="circle"
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="temperature" 
-                    name="Temp (°C)" 
-                    stroke="#f97316" 
-                    strokeWidth={2} 
-                    fill="url(#colorTemp)" 
-                    dot={false} 
+                  <Area
+                    type="monotone"
+                    dataKey="temperature"
+                    name="Temp (°C)"
+                    stroke="#f97316"
+                    strokeWidth={2}
+                    fill="url(#colorTemp)"
+                    dot={false}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="humidity" 
-                    name="Humidity (%)" 
-                    stroke="#38bdf8" 
-                    strokeWidth={2} 
-                    fill="url(#colorHum)" 
-                    dot={false} 
+                  <Area
+                    type="monotone"
+                    dataKey="humidity"
+                    name="Humidity (%)"
+                    stroke="#38bdf8"
+                    strokeWidth={2}
+                    fill="url(#colorHum)"
+                    dot={false}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="vibration" 
-                    name="Vibration (g)" 
-                    stroke="#a78bfa" 
-                    strokeWidth={2} 
-                    fill="url(#colorVib)" 
-                    dot={false} 
+                  <Area
+                    type="monotone"
+                    dataKey="vibration"
+                    name="Vibration (g)"
+                    stroke="#a78bfa"
+                    strokeWidth={2}
+                    fill="url(#colorVib)"
+                    dot={false}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -223,8 +223,8 @@ export default function Page() {
           {/* Stats cards - 2x2 grid */}
           <div className="grid grid-cols-2 gap-3 md:gap-4">
             {stats.map((s) => (
-              <Card 
-                key={s.label} 
+              <Card
+                key={s.label}
                 className="border-slate-200 shadow-md bg-white hover:shadow-lg transition-shadow duration-200"
               >
                 <CardContent className="p-3 md:p-5">
@@ -263,8 +263,8 @@ export default function Page() {
                 Latest 7 sensor entries
               </CardDescription>
             </div>
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="font-mono text-[9px] md:text-[10px] tracking-widest text-slate-600 border-slate-300 px-2 md:px-3 py-0.5 md:py-1 shrink-0"
             >
               AUTO-REFRESH
@@ -285,8 +285,8 @@ export default function Page() {
               </TableHeader>
               <TableBody>
                 {recentReadings.map((r) => (
-                  <TableRow 
-                    key={r.id} 
+                  <TableRow
+                    key={r.id}
                     className="border-slate-200 hover:bg-slate-50 transition-colors"
                   >
                     <TableCell className="font-mono text-xs md:text-sm text-slate-600 pl-4 md:pl-6 whitespace-nowrap">
