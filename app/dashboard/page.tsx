@@ -1,515 +1,315 @@
 "use client";
 
-import * as React from "react";
-import { useState } from "react";
-import { Thermometer, Wind, Zap, Save, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Thermometer, Wind, Zap } from "lucide-react";
+import { SensorCard, StatusBadge } from "@/components/SensorCard";
+import CustomTooltip from "@/components/CustomToolTip";
+import { recentReadings, stats, chartData } from "@/constants/data";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
-type SensorReading = {
-  temperature: string;
-  humidity: string;
-  vibration: string;
-  timestamp: string;
-  status: "normal" | "warning" | "critical";
-  nodeId: string;
-  notes: string;
-};
-
-type ValidationError = {
-  temperature?: string;
-  humidity?: string;
-  vibration?: string;
-  nodeId?: string;
-};
-
-export default function DataInputPage() {
-  const [formData, setFormData] = useState<SensorReading>({
-    temperature: "",
-    humidity: "",
-    vibration: "",
-    timestamp: new Date().toISOString().slice(0, 16),
-    status: "normal",
-    nodeId: "ESP32-001",
-    notes: "",
-  });
-
-  const [errors, setErrors] = useState<ValidationError>({});
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-  const [recentSubmissions, setRecentSubmissions] = useState<SensorReading[]>([]);
-
-  // Auto-determine status based on sensor values
-  const determineStatus = (temp: number, hum: number, vib: number): "normal" | "warning" | "critical" => {
-    if (temp > 35 || hum > 80 || vib > 0.15) return "critical";
-    if (temp > 30 || hum > 70 || vib > 0.08) return "warning";
-    return "normal";
-  };
-
-  // Validation logic
-  const validateForm = (): boolean => {
-    const newErrors: ValidationError = {};
-
-    // Temperature validation (realistic range: -20 to 50°C)
-    const temp = parseFloat(formData.temperature);
-    if (!formData.temperature) {
-      newErrors.temperature = "Temperature is required";
-    } else if (isNaN(temp) || temp < -20 || temp > 50) {
-      newErrors.temperature = "Temperature must be between -20°C and 50°C";
-    }
-
-    // Humidity validation (0-100%)
-    const hum = parseFloat(formData.humidity);
-    if (!formData.humidity) {
-      newErrors.humidity = "Humidity is required";
-    } else if (isNaN(hum) || hum < 0 || hum > 100) {
-      newErrors.humidity = "Humidity must be between 0% and 100%";
-    }
-
-    // Vibration validation (0-1g)
-    const vib = parseFloat(formData.vibration);
-    if (!formData.vibration) {
-      newErrors.vibration = "Vibration is required";
-    } else if (isNaN(vib) || vib < 0 || vib > 1) {
-      newErrors.vibration = "Vibration must be between 0g and 1g";
-    }
-
-    // Node ID validation
-    if (!formData.nodeId.trim()) {
-      newErrors.nodeId = "Node ID is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      setSubmitStatus("error");
-      return;
-    }
-
-    // Auto-calculate status
-    const temp = parseFloat(formData.temperature);
-    const hum = parseFloat(formData.humidity);
-    const vib = parseFloat(formData.vibration);
-    const calculatedStatus = determineStatus(temp, hum, vib);
-
-    const submissionData = {
-      ...formData,
-      status: calculatedStatus,
-    };
-
-    // TODO: Replace with actual API call
-    console.log("Submitting data:", submissionData);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setSubmitStatus("success");
-    setRecentSubmissions([submissionData, ...recentSubmissions.slice(0, 4)]);
-
-    // Reset form after 2 seconds
-    setTimeout(() => {
-      setFormData({
-        temperature: "",
-        humidity: "",
-        vibration: "",
-        timestamp: new Date().toISOString().slice(0, 16),
-        status: "normal",
-        nodeId: formData.nodeId, // Keep the same node ID
-        notes: "",
-      });
-      setSubmitStatus("idle");
-      setErrors({});
-    }, 2000);
-  };
-
-  // Handle input changes
-  const handleChange = (field: keyof SensorReading, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error for this field when user starts typing
-    if (errors[field as keyof ValidationError]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-  // Quick fill buttons for testing
-  const quickFillNormal = () => {
-    setFormData({
-      ...formData,
-      temperature: "27.5",
-      humidity: "60.0",
-      vibration: "0.03",
-    });
-  };
-
-  const quickFillWarning = () => {
-    setFormData({
-      ...formData,
-      temperature: "32.0",
-      humidity: "72.0",
-      vibration: "0.10",
-    });
-  };
-
-  const quickFillCritical = () => {
-    setFormData({
-      ...formData,
-      temperature: "38.0",
-      humidity: "85.0",
-      vibration: "0.20",
-    });
-  };
-
+export default function Page() {
   return (
-    <div className="flex flex-col gap-5 p-5 overflow-auto">
-      {/* Page header */}
+    <div className="flex flex-col gap-4 md:gap-6 p-4 md:p-6 ">
+      {/* Page title */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Data Input</h1>
-        <p className="text-base text-muted-foreground mt-1">
-          Manually enter sensor readings from ESP32 nodes
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Sensor Dashboard</h1>
+        <p className="text-xs md:text-sm text-slate-600 mt-1.5">
+          Real-time monitoring • ESP32 active • Last update: 2 seconds ago
         </p>
       </div>
 
-      {/* Success/Error Message (without Alert component) */}
-      {submitStatus === "success" && (
-        <div className="border border-emerald-500/30 bg-emerald-500/5 rounded-lg p-4 flex items-start gap-3">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
-          <p className="text-emerald-600 text-base">
-            Reading submitted successfully! Data has been logged.
-          </p>
+      {/* Main grid layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+        {/* Left column - Sensor cards */}
+        <div className="lg:col-span-4 flex flex-col gap-3 md:gap-4">
+          <SensorCard
+            label="Temperature"
+            value="28.4"
+            unit="°C"
+            icon={Thermometer}
+            trend="down"
+            trendLabel="↓ 0.5° from last hour"
+            status="normal"
+            accentClass="bg-gradient-to-r from-orange-400 to-red-400"
+            iconBgClass="bg-orange-500/10 text-orange-500"
+          />
+          <SensorCard
+            label="Humidity"
+            value="202.1"
+            unit="%"
+            icon={Wind}
+            trend="up"
+            trendLabel="↑ 1.2% from last hour"
+            status="warning"
+            accentClass="bg-gradient-to-r from-sky-400 to-blue-500"
+            iconBgClass="bg-sky-500/10 text-sky-500"
+          />
+          <SensorCard
+            label="Vibration"
+            value="0.03"
+            unit="g"
+            icon={Zap}
+            trend="stable"
+            trendLabel="Stable — no anomalies"
+            status="normal"
+            accentClass="bg-gradient-to-r from-violet-400 to-purple-500"
+            iconBgClass="bg-violet-500/10 text-violet-500"
+          />
         </div>
-      )}
 
-      {submitStatus === "error" && (
-        <div className="border border-red-500/30 bg-red-500/5 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-          <p className="text-red-600 text-base">
-            Please fix the validation errors below before submitting.
-          </p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Main input form */}
-        <Card className="lg:col-span-2 border-border/60">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Sensor Reading Form</CardTitle>
-                <CardDescription className="text-sm mt-1">
-                  Enter measurements from your ESP32 sensor node
-                </CardDescription>
-              </div>
-              <Badge
-                variant="outline"
-                className="font-mono text-[11px] tracking-widest text-blue-600 border-blue-500/30 bg-blue-500/5"
-              >
-                MANUAL INPUT
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Node ID and Timestamp */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nodeId" className="text-sm font-mono tracking-wider uppercase text-muted-foreground">
-                    Node ID
-                  </Label>
-                  <Input
-                    id="nodeId"
-                    value={formData.nodeId}
-                    onChange={(e) => handleChange("nodeId", e.target.value)}
-                    placeholder="ESP32-001"
-                    className={`font-mono text-base ${errors.nodeId ? "border-red-500" : ""}`}
-                  />
-                  {errors.nodeId && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="h-4 w-4" />
-                      {errors.nodeId}
-                    </p>
-                  )}
+        {/* Right column - Chart and Stats */}
+        <div className="lg:col-span-8 flex flex-col gap-4 md:gap-6">
+          {/* Area Chart */}
+          <Card className="border-slate-200 shadow-lg bg-white">
+            <CardHeader className="pb-3 md:pb-4">
+              <div className="flex items-start md:items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base md:text-lg font-semibold text-slate-900 truncate">
+                    Sensor Readings Over Time
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm mt-1 md:mt-1.5 text-slate-600">
+                    Today, 08:00 – 15:00
+                  </CardDescription>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="timestamp" className="text-sm font-mono tracking-wider uppercase text-muted-foreground">
-                    Timestamp
-                  </Label>
-                  <Input
-                    id="timestamp"
-                    type="datetime-local"
-                    value={formData.timestamp}
-                    onChange={(e) => handleChange("timestamp", e.target.value)}
-                    className="font-mono text-base"
-                  />
-                </div>
-              </div>
-
-              {/* Sensor readings */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Temperature */}
-                <div className="space-y-2">
-                  <Label htmlFor="temperature" className="text-sm font-mono tracking-wider uppercase text-muted-foreground flex items-center gap-1.5">
-                    <Thermometer className="h-4 w-4 text-orange-500" />
-                    Temperature
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="temperature"
-                      type="number"
-                      step="0.1"
-                      value={formData.temperature}
-                      onChange={(e) => handleChange("temperature", e.target.value)}
-                      placeholder="28.4"
-                      className={`font-mono text-base pr-12 ${errors.temperature ? "border-red-500" : ""}`}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-mono">
-                      °C
-                    </span>
-                  </div>
-                  {errors.temperature && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="h-4 w-4" />
-                      {errors.temperature}
-                    </p>
-                  )}
-                </div>
-
-                {/* Humidity */}
-                <div className="space-y-2">
-                  <Label htmlFor="humidity" className="text-sm font-mono tracking-wider uppercase text-muted-foreground flex items-center gap-1.5">
-                    <Wind className="h-4 w-4 text-sky-500" />
-                    Humidity
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="humidity"
-                      type="number"
-                      step="0.1"
-                      value={formData.humidity}
-                      onChange={(e) => handleChange("humidity", e.target.value)}
-                      placeholder="62.1"
-                      className={`font-mono text-base pr-10 ${errors.humidity ? "border-red-500" : ""}`}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-mono">
-                      %
-                    </span>
-                  </div>
-                  {errors.humidity && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="h-4 w-4" />
-                      {errors.humidity}
-                    </p>
-                  )}
-                </div>
-
-                {/* Vibration */}
-                <div className="space-y-2">
-                  <Label htmlFor="vibration" className="text-sm font-mono tracking-wider uppercase text-muted-foreground flex items-center gap-1.5">
-                    <Zap className="h-4 w-4 text-violet-500" />
-                    Vibration
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="vibration"
-                      type="number"
-                      step="0.01"
-                      value={formData.vibration}
-                      onChange={(e) => handleChange("vibration", e.target.value)}
-                      placeholder="0.03"
-                      className={`font-mono text-base pr-10 ${errors.vibration ? "border-red-500" : ""}`}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-mono">
-                      g
-                    </span>
-                  </div>
-                  {errors.vibration && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="h-4 w-4" />
-                      {errors.vibration}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div className="space-y-2">
-                <Label htmlFor="notes" className="text-sm font-mono tracking-wider uppercase text-muted-foreground">
-                  Notes (Optional)
-                </Label>
-                <Input
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => handleChange("notes", e.target.value)}
-                  placeholder="Additional observations or context..."
-                  className="font-mono text-base"
-                />
-              </div>
-
-              {/* Quick fill buttons */}
-              <div className="flex flex-wrap gap-2 pt-2">
-                <p className="text-sm text-muted-foreground font-mono tracking-wider w-full mb-1">
-                  QUICK FILL:
-                </p>
-                <Button
-                  type="button"
+                <Badge
                   variant="outline"
-                  size="sm"
-                  onClick={quickFillNormal}
-                  className="text-sm font-mono"
+                  className="font-mono text-[9px] md:text-[10px] tracking-widest text-emerald-600 border-emerald-500/30 bg-emerald-500/5 px-2 md:px-3 py-0.5 md:py-1 shrink-0"
                 >
-                  Normal Values
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={quickFillWarning}
-                  className="text-sm font-mono"
-                >
-                  Warning Values
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={quickFillCritical}
-                  className="text-sm font-mono"
-                >
-                  Critical Values
-                </Button>
+                  LIVE
+                </Badge>
               </div>
-
-              {/* Submit button */}
-              <div className="flex gap-3 pt-2">
-                <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-base h-11"
-                  disabled={submitStatus === "success"}
-                >
-                  <Save className="h-5 w-5 mr-2" />
-                  Submit Reading
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Guidelines sidebar */}
-        <div className="flex flex-col gap-4">
-          <Card className="border-border/60">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Input Guidelines</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Thermometer className="h-4 w-4 text-orange-500" />
-                  <span className="font-mono font-semibold text-orange-500">Temperature</span>
-                </div>
-                <p className="text-muted-foreground ml-6">
-                  Range: -20°C to 50°C
-                  <br />
-                  <span className="text-emerald-600">Normal: &lt; 30°C</span>
-                  <br />
-                  <span className="text-amber-600">Warning: 30-35°C</span>
-                  <br />
-                  <span className="text-red-600">Critical: &gt; 35°C</span>
-                </p>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Wind className="h-4 w-4 text-sky-500" />
-                  <span className="font-mono font-semibold text-sky-500">Humidity</span>
-                </div>
-                <p className="text-muted-foreground ml-6">
-                  Range: 0% to 100%
-                  <br />
-                  <span className="text-emerald-600">Normal: &lt; 70%</span>
-                  <br />
-                  <span className="text-amber-600">Warning: 70-80%</span>
-                  <br />
-                  <span className="text-red-600">Critical: &gt; 80%</span>
-                </p>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Zap className="h-4 w-4 text-violet-500" />
-                  <span className="font-mono font-semibold text-violet-500">Vibration</span>
-                </div>
-                <p className="text-muted-foreground ml-6">
-                  Range: 0g to 1g
-                  <br />
-                  <span className="text-emerald-600">Normal: &lt; 0.08g</span>
-                  <br />
-                  <span className="text-amber-600">Warning: 0.08-0.15g</span>
-                  <br />
-                  <span className="text-red-600">Critical: &gt; 0.15g</span>
-                </p>
-              </div>
+            <CardContent className="px-2 md:px-6">
+              <ResponsiveContainer width="100%" height={240} className="md:hidden">
+                <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorHum" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorVib" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#a78bfa" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.6} />
+                  <XAxis
+                    dataKey="time"
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    tickLine={false}
+                    axisLine={false}
+                    interval={2}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    wrapperStyle={{ fontSize: 9 }}
+                    iconType="circle"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="temperature"
+                    name="Temp (°C)"
+                    stroke="#f97316"
+                    strokeWidth={1.5}
+                    fill="url(#colorTemp)"
+                    dot={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="humidity"
+                    name="Humidity (%)"
+                    stroke="#38bdf8"
+                    strokeWidth={1.5}
+                    fill="url(#colorHum)"
+                    dot={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="vibration"
+                    name="Vibration (g)"
+                    stroke="#a78bfa"
+                    strokeWidth={1.5}
+                    fill="url(#colorVib)"
+                    dot={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height={280} className="hidden md:block">
+                <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorHum" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorVib" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#a78bfa" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.6} />
+                  <XAxis
+                    dataKey="time"
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    wrapperStyle={{ fontSize: 11 }}
+                    iconType="circle"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="temperature"
+                    name="Temp (°C)"
+                    stroke="#f97316"
+                    strokeWidth={2}
+                    fill="url(#colorTemp)"
+                    dot={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="humidity"
+                    name="Humidity (%)"
+                    stroke="#38bdf8"
+                    strokeWidth={2}
+                    fill="url(#colorHum)"
+                    dot={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="vibration"
+                    name="Vibration (g)"
+                    stroke="#a78bfa"
+                    strokeWidth={2}
+                    fill="url(#colorVib)"
+                    dot={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* Recent submissions */}
-          {recentSubmissions.length > 0 && (
-            <Card className="border-border/60">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">Recent Submissions</CardTitle>
-                <CardDescription className="text-sm mt-1">
-                  Last {recentSubmissions.length} entries
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {recentSubmissions.map((submission, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-md bg-muted/30 border border-border/40 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono text-muted-foreground">
-                        {new Date(submission.timestamp).toLocaleTimeString()}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] font-mono ${
-                          submission.status === "critical"
-                            ? "border-red-500/30 bg-red-500/5 text-red-600"
-                            : submission.status === "warning"
-                            ? "border-amber-500/30 bg-amber-500/5 text-amber-600"
-                            : "border-emerald-500/30 bg-emerald-500/5 text-emerald-600"
-                        }`}
-                      >
-                        {submission.status.toUpperCase()}
-                      </Badge>
+          {/* Stats cards - 2x2 grid */}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            {stats.map((s) => (
+              <Card
+                key={s.label}
+                className="border-slate-200 shadow-md bg-white hover:shadow-lg transition-shadow duration-200"
+              >
+                <CardContent className="p-3 md:p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col gap-0.5 md:gap-1 min-w-0 flex-1">
+                      <p className="text-[10px] md:text-xs font-medium text-slate-500 uppercase tracking-wide truncate">
+                        {s.label}
+                      </p>
+                      <p className={`text-xl md:text-2xl font-bold ${s.color} mt-0.5 md:mt-1`}>
+                        {s.value}
+                      </p>
+                      <p className="text-[10px] md:text-xs text-slate-500 mt-0.5 md:mt-1 truncate">
+                        {s.sub}
+                      </p>
                     </div>
-                    <div className="grid grid-cols-3 gap-1 text-xs font-mono">
-                      <span className="text-orange-500">{submission.temperature}°C</span>
-                      <span className="text-sky-500">{submission.humidity}%</span>
-                      <span className="text-violet-500">{submission.vibration}g</span>
+                    <div className="text-xl md:text-2xl opacity-80 shrink-0">
+                      {s.icon}
                     </div>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Recent readings table - full width */}
+      <Card className="border-slate-200 shadow-lg bg-white">
+        <CardHeader className="pb-3 md:pb-4">
+          <div className="flex items-start md:items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base md:text-lg font-semibold text-slate-900">
+                Recent Readings
+              </CardTitle>
+              <CardDescription className="text-xs md:text-sm mt-1 md:mt-1.5 text-slate-600">
+                Latest 7 sensor entries
+              </CardDescription>
+            </div>
+            <Badge
+              variant="outline"
+              className="font-mono text-[9px] md:text-[10px] tracking-widest text-slate-600 border-slate-300 px-2 md:px-3 py-0.5 md:py-1 shrink-0"
+            >
+              AUTO-REFRESH
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-200 bg-slate-50">
+                  <TableHead className="font-medium text-[10px] md:text-xs text-slate-700 pl-4 md:pl-6 whitespace-nowrap">Time</TableHead>
+                  <TableHead className="font-medium text-[10px] md:text-xs text-slate-700 whitespace-nowrap">Temp</TableHead>
+                  <TableHead className="font-medium text-[10px] md:text-xs text-slate-700 whitespace-nowrap">Humidity</TableHead>
+                  <TableHead className="font-medium text-[10px] md:text-xs text-slate-700 whitespace-nowrap">Vibration</TableHead>
+                  <TableHead className="font-medium text-[10px] md:text-xs text-slate-700 whitespace-nowrap">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentReadings.map((r) => (
+                  <TableRow
+                    key={r.id}
+                    className="border-slate-200 hover:bg-slate-50 transition-colors"
+                  >
+                    <TableCell className="font-mono text-xs md:text-sm text-slate-600 pl-4 md:pl-6 whitespace-nowrap">
+                      {r.timestamp}
+                    </TableCell>
+                    <TableCell className="font-semibold text-xs md:text-sm text-orange-600 whitespace-nowrap">
+                      {r.temperature}°C
+                    </TableCell>
+                    <TableCell className="font-semibold text-xs md:text-sm text-sky-600 whitespace-nowrap">
+                      {r.humidity}%
+                    </TableCell>
+                    <TableCell className="font-semibold text-xs md:text-sm text-violet-600 whitespace-nowrap">
+                      {r.vibration}g
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <StatusBadge status={r.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Status } from "@/type";
 import { SensorCardProps } from "@/type";
-import { SceneFreezing, SceneCold, SceneOvercast, SceneSunny, ScenePartlyCloudy, SceneHot, SceneDry, SceneRainy, SceneVeryHumid, SceneVibStable, SceneVibLow, SceneVibMed, SceneVibHigh } from "@/config/scenes";
+import { SceneFreezing, SceneCold, SceneOvercast, SceneSunny, ScenePartlyCloudy, SceneHot, SceneDry, SceneRainy, SceneVeryHumid, SceneVibStable, SceneVibLow, SceneVibMed, SceneVibHigh } from "@/constants/scenes";
 import { TrendIcon } from "./trendIcon";
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Oxygen, Fira_Code } from "next/font/google";
-import "./globals.css";
+import "./../globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const oxygen = Oxygen({
@@ -28,7 +28,7 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${oxygen.variable} ${firaCode.variable}`}>
             <body className="antialiased font-sans">
-                <TooltipProvider>
+                <TooltipProvider delayDuration={0}>
                     {children}
                 </TooltipProvider>
             </body>

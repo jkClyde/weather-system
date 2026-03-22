@@ -38,7 +38,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { usePathname } from "next/navigation";
-import { navMain, navSettings } from "@/config/nav";
+import { navMain, navSettings } from "@/constants/nav";
+import { SidebarUser } from "./SidebarUser";
 
 
 
@@ -62,9 +63,11 @@ interface AppSidebarLayoutProps {
     children: React.ReactNode;
     activeNav?: string;
     breadcrumbs?: { label: string; href?: string }[];
+    user: { name: string; email: string };
+
 }
 
-export function AppSidebarLayout({ children, breadcrumbs = [] }: Omit<AppSidebarLayoutProps, 'activeNav'>) {
+export function AppSidebarLayout({ children, breadcrumbs = [], user }: Omit<AppSidebarLayoutProps, 'activeNav'>) {
     const pathname = usePathname();
     const activeNav = [...navMain, ...navSettings].find(item => item.href === pathname)?.title ?? "";
     const now = new Date().toLocaleString("en-PH", {
@@ -142,20 +145,7 @@ export function AppSidebarLayout({ children, breadcrumbs = [] }: Omit<AppSidebar
                 </SidebarContent>
 
                 <SidebarFooter>
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton size="lg" className="gap-3">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-muted">
-                                    <Circle className="size-4 fill-current text-muted-foreground" />
-                                </div>
-                                <div className="flex flex-col gap-0.5 leading-none">
-                                    <span className="font-semibold text-sm">Thesis Admin</span>
-                                    <span className="text-[11px] text-muted-foreground">admin@thesis.edu</span>
-                                </div>
-                                <ChevronDown className="ml-auto size-4 text-muted-foreground" />
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
+                    <SidebarUser name={user.name} email={user.email} />
                 </SidebarFooter>
 
                 <SidebarRail />
