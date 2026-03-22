@@ -5,9 +5,9 @@ import * as React from "react";
 import Link from "next/link";
 import {
     Bell,
-    ChevronDown,
     Gauge,
-    Circle,
+    Wifi,
+    WifiOff,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -40,20 +40,64 @@ import { Separator } from "@/components/ui/separator";
 import { usePathname } from "next/navigation";
 import { navMain, navSettings } from "@/constants/nav";
 import { SidebarUser } from "./SidebarUser";
+import { useLiveClock } from "@/hooks/use-live-clock";
 
-
-
-// ─── Live Indicator Sub-component ─────────────────────────────────────────────
+// ─── Live Indicator ───────────────────────────────────────────────────────────
 
 function LiveIndicator() {
+    const [online, setOnline] = React.useState(true);
+
+    React.useEffect(() => {
+        // Sync with browser online/offline events
+        const handleOnline = () => setOnline(true);
+        const handleOffline = () => setOnline(false);
+
+        setOnline(navigator.onLine);
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("offline", handleOffline);
+
+        return () => {
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
+        };
+    }, []);
+
+    if (!online) {
+        return (
+            <div className="flex items-center gap-1.5">
+                <WifiOff className="w-3 h-3 text-red-500" />
+                <span className="text-xs font-mono text-red-500 tracking-widest uppercase">
+                    Offline
+                </span>
+            </div>
+        );
+    }
+
     return (
         <div className="flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="text-xs font-mono text-emerald-500 tracking-widest uppercase">Live</span>
+            <span className="text-xs font-mono text-emerald-500 tracking-widest uppercase">
+                Live
+            </span>
         </div>
+    );
+}
+
+// ─── Live Clock ───────────────────────────────────────────────────────────────
+
+function LiveClock() {
+    const { formatted } = useLiveClock("en-PH");
+
+    // Render nothing until client mounts — avoids hydration mismatch
+    if (!formatted) return null;
+
+    return (
+        <span className="text-xs text-muted-foreground font-mono hidden sm:block tabular-nums">
+            {formatted}
+        </span>
     );
 }
 
@@ -61,22 +105,21 @@ function LiveIndicator() {
 
 interface AppSidebarLayoutProps {
     children: React.ReactNode;
-    activeNav?: string;
     breadcrumbs?: { label: string; href?: string }[];
     user: { name: string; email: string };
-
 }
 
-export function AppSidebarLayout({ children, breadcrumbs = [], user }: Omit<AppSidebarLayoutProps, 'activeNav'>) {
+export function AppSidebarLayout({
+    children,
+    breadcrumbs = [],
+    user,
+}: AppSidebarLayoutProps) {
     const pathname = usePathname();
-    const activeNav = [...navMain, ...navSettings].find(item => item.href === pathname)?.title ?? "";
-    const now = new Date().toLocaleString("en-PH", {
-        weekday: "short", month: "short", day: "numeric",
-        hour: "2-digit", minute: "2-digit",
-    });
+    const activeNav =
+        [...navMain, ...navSettings].find((item) => item.href === pathname)?.title ?? "";
 
     return (
-        <SidebarProvider style={{ "--sidebar-width": "20rem" } as React.CSSProperties}>
+        <SidebarProvider >
             <Sidebar collapsible="icon" variant="inset">
                 <SidebarHeader>
                     <SidebarMenu>
@@ -94,10 +137,9 @@ export function AppSidebarLayout({ children, breadcrumbs = [], user }: Omit<AppS
                     </SidebarMenu>
                 </SidebarHeader>
 
-                <SidebarContent >
+                <SidebarContent>
                     <SidebarGroup>
-                        <SidebarGroupLabel className="font-mono text-[10px] tracking-widest">
-                        </SidebarGroupLabel>
+                        <SidebarGroupLabel className="font-mono text-[10px] tracking-widest" />
                         <SidebarGroupContent>
                             <SidebarMenu className="gap-2.5">
                                 {navMain.map((item) => (
@@ -109,8 +151,10 @@ export function AppSidebarLayout({ children, breadcrumbs = [], user }: Omit<AppS
                                             className="h-10!"
                                         >
                                             <Link href={item.href}>
-                                                <item.icon className="w-6! h-6!" />
-                                                <span className="font-oxygen text-[14px]! tracking-wide">{item.title}</span>
+                                                <item.icon className="shrink-0" />
+                                                <span className="font-oxygen text-[14px]! tracking-wide">
+                                                    {item.title}
+                                                </span>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
@@ -134,7 +178,7 @@ export function AppSidebarLayout({ children, breadcrumbs = [], user }: Omit<AppS
                                         >
                                             <Link href={item.href}>
                                                 <item.icon />
-                                                <span >{item.title}</span>
+                                                <span>{item.title}</span>
                                             </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
@@ -148,10 +192,9 @@ export function AppSidebarLayout({ children, breadcrumbs = [], user }: Omit<AppS
                     <SidebarUser name={user.name} email={user.email} />
                 </SidebarFooter>
 
-                <SidebarRail />
             </Sidebar>
 
-            <SidebarInset className="md:m-4! ml-0!">
+            <SidebarInset className="">
                 {/* Top bar */}
                 <header className="flex h-17.5 shrink-0 items-center gap-3 border-b border-border/60 px-4">
                     <SidebarTrigger className="-ml-1" />
@@ -172,16 +215,19 @@ export function AppSidebarLayout({ children, breadcrumbs = [], user }: Omit<AppS
                                                 {crumb.label}
                                             </BreadcrumbLink>
                                         ) : (
-                                            <BreadcrumbPage className="text-sm">{crumb.label}</BreadcrumbPage>
+                                            <BreadcrumbPage className="text-sm">
+                                                {crumb.label}
+                                            </BreadcrumbPage>
                                         )}
                                     </BreadcrumbItem>
                                 </React.Fragment>
                             ))}
                         </BreadcrumbList>
                     </Breadcrumb>
+
                     <div className="ml-auto flex items-center gap-4">
                         <LiveIndicator />
-                        <span className="text-xs text-muted-foreground font-mono hidden sm:block">{now}</span>
+                        <LiveClock />
                         <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs">
                             <Bell className="w-3 h-3" />
                             <Badge className="h-4 w-4 p-0 text-[10px] flex items-center justify-center bg-red-500">
@@ -192,7 +238,7 @@ export function AppSidebarLayout({ children, breadcrumbs = [], user }: Omit<AppS
                 </header>
 
                 {/* Page content */}
-                <div className="flex flex-col gap-5  md:p-5 overflow-auto ">
+                <div className="flex flex-col gap-5 md:p-5 overflow-auto">
                     {children}
                 </div>
             </SidebarInset>

@@ -58,9 +58,9 @@ export default function LoginPage() {
                         <Gauge className="w-7 h-7 text-sky-400" strokeWidth={1.5} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-white tracking-tight">
+                        {/* <h1 className="text-2xl font-bold text-white tracking-tight">
                             Welcome back
-                        </h1>
+                        </h1> */}
                         <p className="text-sm text-slate-400 mt-1">
                             Sign in to your SensorDash account
                         </p>
@@ -152,7 +152,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Sign up link */}
-                <p className="text-center text-sm text-slate-500">
+                {/* <p className="text-center text-sm text-slate-500">
                     Don&apos;t have an account?{" "}
                     <Link
                         href="/signup"
@@ -160,7 +160,7 @@ export default function LoginPage() {
                     >
                         Create one
                     </Link>
-                </p>
+                </p> */}
             </div>
         </div>
     );

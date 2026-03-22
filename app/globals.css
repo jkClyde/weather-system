@@ -94,12 +94,12 @@ textarea {
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
+  --radius: 0.625rem ;
   --sidebar: #1F263E;
   --sidebar-foreground: white;
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent: white;
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
@@ -157,4 +157,17 @@ textarea {
   background-color: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   font-weight: 600;
+}
+
+@media (min-width: 1025px) {
+
+  /* Pill shape — only when sidebar is EXPANDED */
+  [data-state="expanded"] [data-slot="sidebar-menu-button"] {
+    border-radius: 100px 0 0 100px !important;
+  }
+
+  /* Reset to normal rounded corners when COLLAPSED */
+  [data-collapsible="icon"] [data-slot="sidebar-menu-button"] {
+    border-radius: 8px !important;
+  }
 }
