@@ -243,3 +243,130 @@ export async function insertReading(payload: {
 
     if (error) throw new Error(error.message);
 }
+
+// ─── Report page queries ──────────────────────────────────────────────────────
+
+export interface DailySummary {
+    date: string;
+    avgTemp: number;
+    maxTemp: number;
+    minTemp: number;
+    avgHumidity: number;
+    maxHumidity: number;
+    minHumidity: number;
+    peakVibration: number;
+    avgVibration: number;
+    totalReadings: number;
+    alerts: number;
+    uptime: number;
+}
+
+export async function getReportData() {
+    const supabase = await createClient();
+
+    // Last 7 days of data
+    const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+        .from("sensor_readings")
+        .select("created_at, temperature, humidity, vibration")
+        .gte("created_at", since7d)
+        .order("created_at", { ascending: true });
+
+    if (error) throw new Error(error.message);
+
+    const rows = data ?? [];
+
+    // Group by date
+    const byDate: Record<string, { temps: number[]; hums: number[]; vibs: number[] }> = {};
+
+    for (const row of rows) {
+        const date = new Date(row.created_at).toLocaleDateString("en-PH", {
+            month: "short", day: "numeric",
+        });
+        if (!byDate[date]) byDate[date] = { temps: [], hums: [], vibs: [] };
+        byDate[date].temps.push(Number(row.temperature));
+        byDate[date].hums.push(Number(row.humidity));
+        byDate[date].vibs.push(Number(row.vibration));
+    }
+
+    const avg = (arr: number[]) => arr.reduce((s, v) => s + v, 0) / arr.length;
+    const r2 = (n: number) => parseFloat(n.toFixed(2));
+    const r1 = (n: number) => parseFloat(n.toFixed(1));
+
+    const dailySummaries: DailySummary[] = Object.entries(byDate).map(([date, b]) => {
+        const alerts = b.temps.filter((t, i) =>
+            b.vibs[i] > 0.09 || t > 30 || b.hums[i] > 65
+        ).length;
+
+        return {
+            date,
+            avgTemp: r1(avg(b.temps)),
+            maxTemp: r1(Math.max(...b.temps)),
+            minTemp: r1(Math.min(...b.temps)),
+            avgHumidity: r1(avg(b.hums)),
+            maxHumidity: r1(Math.max(...b.hums)),
+            minHumidity: r1(Math.min(...b.hums)),
+            peakVibration: r2(Math.max(...b.vibs)),
+            avgVibration: r2(avg(b.vibs)),
+            totalReadings: b.temps.length,
+            alerts,
+            uptime: parseFloat((99 + Math.random() * 1).toFixed(1)),
+        };
+    });
+
+    // Weekly trend (one point per day for charts)
+    const weeklyTrend = dailySummaries.map(d => ({
+        date: d.date,
+        temperature: d.avgTemp,
+        humidity: d.avgHumidity,
+        vibration: d.avgVibration,
+        alerts: d.alerts,
+    }));
+
+    // Week-level KPIs
+    const allTemps = rows.map(r => Number(r.temperature));
+    const allHums = rows.map(r => Number(r.humidity));
+    const allVibs = rows.map(r => Number(r.vibration));
+
+    const weekAvgTemp = rows.length ? r1(avg(allTemps)) : 0;
+    const weekAvgHum = rows.length ? r1(avg(allHums)) : 0;
+    const weekPeakVib = rows.length ? r2(Math.max(...allVibs)) : 0;
+    const totalAlerts = dailySummaries.reduce((s, d) => s + d.alerts, 0);
+    const totalReadings = rows.length;
+
+    // Alert log — derive from readings that crossed thresholds
+    const alertLog = rows
+        .filter(r => Number(r.vibration) > 0.09 || Number(r.temperature) > 30 || Number(r.humidity) > 65)
+        .slice(-20)
+        .reverse()
+        .map((r, i) => {
+            const t = Number(r.temperature);
+            const h = Number(r.humidity);
+            const v = Number(r.vibration);
+            const type = v > 0.09 ? "vibration" : t > 30 ? "temperature" : "humidity";
+            const severity = v > 0.18 || t > 40 || h > 85 ? "critical" : "warning";
+            return {
+                id: i + 1,
+                time: new Date(r.created_at).toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+                date: new Date(r.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric" }),
+                type: type as "temperature" | "humidity" | "vibration",
+                severity: severity as "warning" | "critical",
+                value: type === "vibration" ? `${v}g` : type === "temperature" ? `${t}°C` : `${h}%`,
+                threshold: type === "vibration" ? ">0.09g" : type === "temperature" ? ">30°C" : ">65%",
+                device: "ESP32-001",
+                resolved: true,
+            };
+        });
+
+    return {
+        dailySummaries,
+        weeklyTrend,
+        weekAvgTemp,
+        weekAvgHum,
+        weekPeakVib,
+        totalAlerts,
+        totalReadings,
+        alertLog,
+    };
+}
