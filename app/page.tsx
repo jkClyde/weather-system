@@ -47,7 +47,7 @@ export default function Page() {
           />
           <SensorCard
             label="Humidity"
-            value="62.1"
+            value="202.1"
             unit="%"
             icon={Wind}
             trend="up"
