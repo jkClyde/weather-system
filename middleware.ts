@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const PUBLIC_ROUTES = ["/login", "/signup", "/auth"];
+const PROTECTED_ROUTES = ["/dashboard", "/history", "/settings"];
+
 export async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request });
 
@@ -25,19 +28,24 @@ export async function middleware(request: NextRequest) {
         }
     );
 
-    // Refresh session — do not remove this
-    const { data: { user } } = await supabase.auth.getUser();
+    // Use getSession() in middleware — reads from cookie, no network call.
+    // getUser() is reserved for sensitive server actions only.
+    const { data: { session } } = await supabase.auth.getSession();
 
-    // Redirect unauthenticated users away from protected routes
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith("/login") &&
-        !request.nextUrl.pathname.startsWith("/signup") &&   // ← add this
-        !request.nextUrl.pathname.startsWith("/auth") &&
-        request.nextUrl.pathname.startsWith("/dashboard")
-    ) {
+    const pathname = request.nextUrl.pathname;
+
+    const isPublicRoute = PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
+    const isProtectedRoute = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));
+
+    if (!session && isProtectedRoute) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
+        return NextResponse.redirect(url);
+    }
+
+    if (session && isPublicRoute) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
         return NextResponse.redirect(url);
     }
 
