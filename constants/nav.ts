@@ -17,12 +17,13 @@ export interface NavItem {
 
 export const navMain: NavItem[] = [
     { title: "Dashboard", icon: Home, href: "/dashboard" },
-    { title: "Data Input", icon: FileText, href: "/" },
+    { title: "Data Input", icon: FileText, href: "/dashboard/data-input" },
+    { title: "Reports", icon: Activity, href: "/dashboard/reports" },
     { title: "History", icon: Database, href: "/dashboard/history" },
-    { title: "Reports", icon: Activity, href: "/reports" },
+
 ];
 
 export const navSettings: NavItem[] = [
-    { title: "Alerts", icon: Bell, href: "/alerts" },
+    // { title: "Alerts", icon: Bell, href: "/alerts" },
     { title: "Settings", icon: Settings, href: "/settings" },
 ];
