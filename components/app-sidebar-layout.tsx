@@ -174,10 +174,9 @@ export function AppSidebarLayout({ children, breadcrumbs = [], user }: AppSideba
                     <SidebarUser name={user.name} email={user.email} />
                 </SidebarFooter>
 
-                <SidebarRail />
             </Sidebar>
 
-            <SidebarInset className="md:m-4! ml-0!">
+            <SidebarInset className="">
                 <header className="flex h-17.5 shrink-0 items-center gap-3 border-b border-border/60 px-4">
                     <SidebarTrigger className="-ml-1" />
                     <Separator orientation="vertical" className="h-full" />
