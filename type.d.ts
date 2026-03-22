@@ -16,3 +16,15 @@ export interface ChartPoint {
   humidity: number;
   vibration: number;
 }
+
+export interface SensorCardProps {
+  label: string;
+  value: string;
+  unit: string;
+  icon: React.ElementType;
+  trend: "up" | "down" | "stable";
+  trendLabel: string;
+  status: Status;
+  accentClass: string;
+  iconBgClass: string;
+}
