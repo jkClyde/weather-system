@@ -60,7 +60,7 @@ function KpiCard({ label, value, sub, delta, deltaLabel, accent, icon }: {
                 </div>
                 <div>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
-                    <p className="text-3xl font-bold text-foreground tracking-tight leading-none mb-1">{value}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none mb-1">{value}</p>
                     <p className="text-xs text-muted-foreground">{sub}</p>
                 </div>
             </div>

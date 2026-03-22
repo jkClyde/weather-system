@@ -159,7 +159,7 @@ function StatCard({ s }: { s: typeof stats[0] }) {
         </div>
 
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">{s.label}</p>
-        <p className={`text-4xl font-bold tracking-tight ${s.color} mb-0.5`}>{s.value}</p>
+        <p className={`text-2xl md:text-4xl font-bold tracking-tight ${s.color} mb-0.5`}>{s.value}</p>
         <p className="text-xs text-muted-foreground">{s.sub}</p>
       </div>
     </div>
