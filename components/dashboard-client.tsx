@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
     Thermometer, Wind, Zap, TrendingUp, TrendingDown,
     Activity, Droplets, Gauge, Clock, Minus,
@@ -17,7 +19,6 @@ import {
 import { Status } from "@/type";
 import { ChartPoint, Reading } from "@/type";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface Props {
     recentReadings: Reading[];
     chartData: ChartPoint[];
@@ -27,7 +28,12 @@ interface Props {
     }[];
 }
 
-// ─── Status badge ─────────────────────────────────────────────────────────────
+function deriveStatus(t: number, h: number, v: number): Status {
+    if (v > 0.18 || t > 40 || h > 85) return "critical";
+    if (v > 0.09 || t > 30 || h > 65) return "warning";
+    return "normal";
+}
+
 function StatusBadge({ status }: { status: Status }) {
     const map: Record<Status, { dot: string; pill: string; label: string }> = {
         normal: { dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20", label: "Normal" },
@@ -43,7 +49,6 @@ function StatusBadge({ status }: { status: Status }) {
     );
 }
 
-// ─── Quick-stat pill ──────────────────────────────────────────────────────────
 function Pill({ icon, value, color }: { icon: React.ReactNode; value: string; color: string }) {
     return (
         <div className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 border text-xs font-mono font-medium ${color}`}>
@@ -52,59 +57,6 @@ function Pill({ icon, value, color }: { icon: React.ReactNode; value: string; co
     );
 }
 
-// ─── Dashboard header ─────────────────────────────────────────────────────────
-function DashboardHeader({ stats }: { stats: Props["stats"] }) {
-    const temp = stats.find(s => s.label.includes("Temp"))?.value ?? "—";
-    const hum = stats.find(s => s.label.includes("Hum"))?.value ?? "—";
-    const vib = stats.find(s => s.label.includes("Vib"))?.value ?? "—";
-
-    return (
-        <div
-            className="relative overflow-hidden rounded-3xl p-6 md:p-8 shadow-lg"
-            style={{ background: "linear-gradient(135deg, #1F263E 0%, #2A3354 50%, #3B4D7A 100%)" }}
-        >
-            <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-white/5" />
-            <div className="absolute -bottom-14 -right-4  w-40 h-40 rounded-full bg-white/5" />
-            <div className="absolute top-6   right-32     w-16 h-16 rounded-full bg-white/5" />
-
-            <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-9 h-9 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center backdrop-blur-sm">
-                            <Gauge className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-white/60 text-[10px] font-mono uppercase tracking-widest">SensorGrid</p>
-                            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight leading-none">
-                                Sensor Dashboard
-                            </h1>
-                        </div>
-                    </div>
-                    <p className="text-white/55 text-xs font-mono mt-1">
-                        ESP32 active · Live data from Supabase
-                    </p>
-                </div>
-
-                <div className="flex flex-col items-start sm:items-end gap-3">
-                    <span className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1.5 backdrop-blur-sm">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-                        </span>
-                        <span className="text-[11px] font-mono font-semibold text-white tracking-widest uppercase">Live</span>
-                    </span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <Pill icon={<Thermometer className="w-3 h-3" />} value={temp} color="bg-orange-400/20 border-orange-300/30 text-orange-100" />
-                        <Pill icon={<Droplets className="w-3 h-3" />} value={hum} color="bg-sky-400/20    border-sky-300/30    text-sky-100" />
-                        <Pill icon={<Activity className="w-3 h-3" />} value={vib} color="bg-violet-400/20 border-violet-300/30 text-violet-100" />
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ─── Stat card ────────────────────────────────────────────────────────────────
 const statMeta: Record<string, {
     icon: React.ReactNode; accent: string; iconBg: string;
     trend: "up" | "down" | "stable"; trendClass: string;
@@ -147,7 +99,6 @@ function StatCard({ s }: { s: Props["stats"][0] }) {
         trend: "stable" as const,
         trendClass: "text-muted-foreground bg-muted border-border",
     };
-
     return (
         <div className="relative overflow-hidden bg-card border border-border rounded-2xl p-4 md:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
             <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${meta.accent}`} />
@@ -171,7 +122,6 @@ function StatCard({ s }: { s: Props["stats"][0] }) {
     );
 }
 
-// ─── Section label ────────────────────────────────────────────────────────────
 function SectionLabel({ children }: { children: React.ReactNode }) {
     return (
         <div className="flex items-center gap-2 mb-3">
@@ -181,25 +131,151 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     );
 }
 
-// ─── Dashboard client ─────────────────────────────────────────────────────────
-export function DashboardClient({ recentReadings, chartData, stats }: Props) {
-    // Use the most recent reading for the sensor cards
-    const latest = recentReadings[0];
+export function DashboardClient({ recentReadings: initialReadings, chartData: initialChart, stats: initialStats }: Props) {
+    // ── Local state — starts with SSR data, updated by realtime ──────────────
+    const [readings, setReadings] = useState<Reading[]>(initialReadings);
+    const [chartData, setChartData] = useState<ChartPoint[]>(initialChart);
+    const [stats, setStats] = useState(initialStats);
+    const [pulse, setPulse] = useState(false);
+
+    // ── Merge incoming realtime row into state ───────────────────────────────
+    const mergeRow = useCallback((row: any) => {
+        const temp = Number(row.temperature);
+        const hum = Number(row.humidity);
+        const vib = Number(row.vibration);
+        const status = deriveStatus(temp, hum, vib);
+        const ts = new Date(row.created_at).toLocaleTimeString("en-PH", {
+            hour: "2-digit", minute: "2-digit", second: "2-digit",
+        });
+
+        // Flash indicator
+        setPulse(true);
+        setTimeout(() => setPulse(false), 1500);
+
+        // Update readings table — prepend + keep 7
+        setReadings(prev => [
+            { id: row.id, timestamp: ts, temperature: temp, humidity: hum, vibration: vib, status },
+            ...prev,
+        ].slice(0, 7));
+
+        // Update chart — merge into 30-min bucket
+        setChartData(prev => {
+            const d = new Date(row.created_at);
+            const hh = String(d.getHours()).padStart(2, "0");
+            const mm = d.getMinutes() < 30 ? "00" : "30";
+            const key = `${hh}:${mm}`;
+            const idx = prev.findIndex(p => p.time === key);
+            if (idx !== -1) {
+                const b = prev[idx];
+                const updated = {
+                    ...b,
+                    temperature: parseFloat(((b.temperature + temp) / 2).toFixed(1)),
+                    humidity: parseFloat(((b.humidity + hum) / 2).toFixed(1)),
+                    vibration: parseFloat(((b.vibration + vib) / 2).toFixed(3)),
+                };
+                return [...prev.slice(0, idx), updated, ...prev.slice(idx + 1)];
+            }
+            return [...prev, { time: key, temperature: temp, humidity: hum, vibration: vib }];
+        });
+
+        // Update stat counters
+        setStats(prev => prev.map(s => {
+            if (s.label === "Total Readings") {
+                const n = parseInt(s.value.replace(/,/g, ""), 10) || 0;
+                return { ...s, value: (n + 1).toLocaleString() };
+            }
+            if (s.label === "Peak Vibration") {
+                const current = parseFloat(s.value) || 0;
+                if (vib > current) return { ...s, value: `${vib}g`, sub: `Today at ${ts.slice(0, 5)}` };
+            }
+            return s;
+        }));
+    }, []);
+
+    // ── Supabase Realtime subscription ───────────────────────────────────────
+    useEffect(() => {
+        const supabase = createClient();
+        const channel = supabase
+            .channel("dashboard-live")
+            .on(
+                "postgres_changes",
+                { event: "INSERT", schema: "public", table: "sensor_readings" },
+                (payload) => mergeRow(payload.new)
+            )
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, [mergeRow]);
+
+    const latest = readings[0];
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-6 bg-background min-h-screen">
 
-            <DashboardHeader stats={stats} />
+            {/* Header */}
+            <div
+                className="relative overflow-hidden rounded-3xl p-6 md:p-8 shadow-lg"
+                style={{ background: "linear-gradient(135deg, #1F263E 0%, #2A3354 50%, #3B4D7A 100%)" }}
+            >
+                <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-white/5" />
+                <div className="absolute -bottom-14 -right-4  w-40 h-40 rounded-full bg-white/5" />
+                <div className="absolute top-6   right-32     w-16 h-16 rounded-full bg-white/5" />
+
+                <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-9 h-9 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center backdrop-blur-sm">
+                                <Gauge className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-white/60 text-[10px] font-mono uppercase tracking-widest">SensorGrid</p>
+                                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight leading-none">
+                                    Sensor Dashboard
+                                </h1>
+                            </div>
+                        </div>
+                        <p className="text-white/55 text-xs font-mono mt-1">
+                            ESP32 active · Live data from Supabase
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col items-start sm:items-end gap-3">
+                        {/* Live badge — flashes on new data */}
+                        <span className={`flex items-center gap-2 border rounded-full px-3 py-1.5 backdrop-blur-sm transition-all duration-700 ${pulse ? "bg-emerald-400/25 border-emerald-300/60" : "bg-white/10 border-white/20"
+                            }`}>
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                            </span>
+                            <span className="text-[11px] font-mono font-semibold text-white tracking-widest uppercase">
+                                {pulse ? "New data!" : "Live"}
+                            </span>
+                        </span>
+                        {/* Pills now use live readings state */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <Pill icon={<Thermometer className="w-3 h-3" />}
+                                value={latest ? `${latest.temperature}°C` : "—"}
+                                color="bg-orange-400/20 border-orange-300/30 text-orange-100" />
+                            <Pill icon={<Droplets className="w-3 h-3" />}
+                                value={latest ? `${latest.humidity}%` : "—"}
+                                color="bg-sky-400/20 border-sky-300/30 text-sky-100" />
+                            <Pill icon={<Activity className="w-3 h-3" />}
+                                value={latest ? `${latest.vibration}g` : "—"}
+                                color="bg-violet-400/20 border-violet-300/30 text-violet-100" />
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6">
 
-                {/* Sensor cards — show latest reading values */}
+                {/* Sensor cards */}
                 <div className="lg:col-span-4 flex flex-col gap-4">
                     <SectionLabel>Sensors</SectionLabel>
                     <SensorCard
                         label="Temperature" unit="°C" icon={Thermometer}
                         value={latest ? String(latest.temperature) : "—"}
-                        trend={latest?.status === "critical" ? "up" : latest?.status === "warning" ? "up" : "stable"}
+                        trend={latest?.status === "critical" || latest?.status === "warning" ? "up" : "stable"}
                         trendLabel={latest ? `Last reading at ${latest.timestamp}` : "No data yet"}
                         status={latest?.status ?? "normal"}
                         accentClass="bg-gradient-to-r from-orange-400 to-red-400"
@@ -208,7 +284,7 @@ export function DashboardClient({ recentReadings, chartData, stats }: Props) {
                     <SensorCard
                         label="Humidity" unit="%" icon={Wind}
                         value={latest ? String(latest.humidity) : "—"}
-                        trend={latest?.humidity > 65 ? "up" : "stable"}
+                        trend={(latest?.humidity ?? 0) > 65 ? "up" : "stable"}
                         trendLabel={latest ? `Last reading at ${latest.timestamp}` : "No data yet"}
                         status={latest?.status ?? "normal"}
                         accentClass="bg-gradient-to-r from-sky-400 to-blue-500"
@@ -217,8 +293,8 @@ export function DashboardClient({ recentReadings, chartData, stats }: Props) {
                     <SensorCard
                         label="Vibration" unit="g" icon={Zap}
                         value={latest ? String(latest.vibration) : "—"}
-                        trend={latest?.vibration > 0.09 ? "up" : "stable"}
-                        trendLabel={latest?.vibration > 0.09 ? "Above normal threshold" : "Stable — no anomalies"}
+                        trend={(latest?.vibration ?? 0) > 0.09 ? "up" : "stable"}
+                        trendLabel={(latest?.vibration ?? 0) > 0.09 ? "Above normal threshold" : "Stable — no anomalies"}
                         status={latest?.status ?? "normal"}
                         accentClass="bg-gradient-to-r from-violet-400 to-purple-500"
                         iconBgClass="bg-violet-500/10 text-violet-500"
@@ -305,9 +381,11 @@ export function DashboardClient({ recentReadings, chartData, stats }: Props) {
                             <h2 className="text-base font-semibold text-foreground">Recent Readings</h2>
                             <p className="text-sm text-muted-foreground font-mono mt-0.5">Latest 7 sensor entries</p>
                         </div>
-                        <div className="flex items-center gap-1.5 text-sm font-mono text-muted-foreground">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Auto-refresh</span>
+                        <div className="flex items-center gap-1.5 text-sm font-mono transition-colors duration-500">
+                            <Clock className={`w-3.5 h-3.5 ${pulse ? "text-emerald-500" : "text-muted-foreground"}`} />
+                            <span className={pulse ? "text-emerald-500 font-semibold" : "text-muted-foreground"}>
+                                {pulse ? "Updated!" : "Realtime"}
+                            </span>
                         </div>
                     </div>
                     <div className="overflow-x-auto">
@@ -328,15 +406,19 @@ export function DashboardClient({ recentReadings, chartData, stats }: Props) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {recentReadings.length === 0 ? (
+                                {readings.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8 font-mono">
                                             No readings yet — insert some data to get started
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    recentReadings.map((r, i) => (
-                                        <TableRow key={r.id} className={`border-border hover:bg-primary/5 transition-colors ${i % 2 === 0 ? "bg-card" : "bg-muted/20"}`}>
+                                    readings.map((r, i) => (
+                                        <TableRow key={r.id}
+                                            className={`border-border hover:bg-primary/5 transition-colors duration-300 ${i === 0 && pulse
+                                                    ? "bg-emerald-50/60 dark:bg-emerald-500/5"
+                                                    : i % 2 === 0 ? "bg-card" : "bg-muted/20"
+                                                }`}>
                                             <TableCell className="pl-5 whitespace-nowrap">
                                                 <span className="font-mono text-sm text-muted-foreground bg-muted border border-border rounded-lg px-2 py-1">{r.timestamp}</span>
                                             </TableCell>

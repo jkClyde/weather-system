@@ -1,6 +1,3 @@
-// app/dashboard/page.tsx
-// Server Component — fetches real data then passes down to the client UI
-
 import { getRecentReadings, getChartData, getStats } from "@/lib/supabase/sensor-queries";
 import { DashboardClient } from "@/components/dashboard-client";
 
